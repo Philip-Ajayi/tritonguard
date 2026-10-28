@@ -1,0 +1,73 @@
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env*.local
+.env.production
+.env.development
+*.env
+.env.example
+
+# ==========================================
+# Frontend (Next.js 15 / React / TypeScript)
+# ==========================================
+frontend/node_modules/
+node_modules/
+frontend/.next/
+.next/
+frontend/out/
+*.tsbuildinfo
+frontend/.turbo/
+.turbo/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Backend (Python / FastAPI / PyTorch / Triton)
+# ==========================================
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch / Triton compilation caches
+.triton/
+~/.triton/
+*.pt
+*.pth
+*.bin
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+backend/.venv/
+
+# Testing & Coverage
+.pytest_cache/
+backend/.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Colab / Ngrok / Local Artifacts
+# ==========================================
+colab/.ipynb_checkpoints/
+*.ipynb_checkpoints/
+ngrok.log
+
+# ==========================================
+# System & IDE Files
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

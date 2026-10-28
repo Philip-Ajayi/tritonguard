@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tritonguard-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - NEBIUS_API_KEY=${NEBIUS_API_KEY:-}
+      - NEBIUS_API_BASE_URL=${NEBIUS_API_BASE_URL:-https://api.tokenfactory.nebius.com/v1}
+      - ENABLE_HARDWARE_SANDBOX=true
+      - ENABLE_CPU_SIMULATOR_FALLBACK=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tritonguard-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
