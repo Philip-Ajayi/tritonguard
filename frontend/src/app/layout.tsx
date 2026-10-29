@@ -1,9 +1,11 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TritonGuard | Autonomous GPU Kernel Memory Verifier",
-  description: "Static GPU memory invariant proof and automated memory swizzling synthesis.",
+  title: "TritonGuard — GPU Memory Verification",
+  description:
+    "Inspect GPU memory conflicts, generate swizzled layouts, and verify kernel performance.",
 };
 
 export default function RootLayout({

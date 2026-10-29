@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -17,7 +18,6 @@ import {
 export default function Home() {
   const [selectedArch, setSelectedArch] = useState("sm_75");
   const [backendBaseUrl] = useState("");
-  // Separate worker URL: switches to Colab T4 GPU when connected
   const [gpuWorkerUrl, setGpuWorkerUrl] = useState("");
 
   const [code, setCode] = useState("");
@@ -49,7 +49,7 @@ export default function Home() {
       const res = await fetch(`${backendBaseUrl}/api/audit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, target_arch: selectedArch })
+        body: JSON.stringify({ code, target_arch: selectedArch }),
       });
       const data = await res.json();
       setAuditData(data);
@@ -68,8 +68,11 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code,
-          tile_shapes: auditData?.ast.tile_shapes || { BLOCK_M: 64, BLOCK_K: 32 }
-        })
+          tile_shapes: auditData?.ast.tile_shapes || {
+            BLOCK_M: 64,
+            BLOCK_K: 32,
+          },
+        }),
       });
       const data = await res.json();
       setSwizzleData(data);
@@ -82,7 +85,6 @@ export default function Home() {
 
   const handleVerify = async () => {
     setLoadingVerify(true);
-    // Route to Colab if connected, otherwise use Render fallback
     const targetUrl = gpuWorkerUrl.trim().replace(/\/$/, "") || backendBaseUrl;
 
     try {
@@ -92,8 +94,8 @@ export default function Home() {
         body: JSON.stringify({
           original_code: code,
           swizzled_code: swizzleData ? swizzleData.patch.patched_code : code,
-          target_arch: selectedArch
-        })
+          target_arch: selectedArch,
+        }),
       });
       const data = await res.json();
       setVerifyResult(data);
@@ -112,34 +114,53 @@ export default function Home() {
         onOpenColabModal={() => setIsColabModalOpen(true)}
       />
 
-      <main className="flex-1 p-6 max-w-[1600px] w-full mx-auto space-y-6">
+      <main className="flex-1 px-6 max-w-[1600px] w-full mx-auto space-y-6">
         <section className="tg-hero relative overflow-hidden rounded-2xl border border-gpu-border px-6 py-7 md:px-8 md:py-8">
           <div className="tg-hero-glow" aria-hidden="true" />
-          <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+
+          <div className="relative z-10 flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.9)]" />
-                GPU memory intelligence · formal verification
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                GPU memory tools
               </div>
-              <h1 className="text-3xl font-semibold leading-tight tracking-[-0.045em] text-white md:text-5xl">
-                Make every memory access <span className="tg-gradient-text">provably count.</span>
+
+              <h1 className="text-3xl font-semibold leading-[1.12] tracking-[-0.045em] text-white md:text-5xl">
+                Find the conflict.
+                <br />
+                <span className="tg-gradient-text">
+                  Fix it with proof.
+                </span>
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
-                Inspect bank conflicts, synthesize XOR swizzles, and verify kernel equivalence in one precision-built workspace.
+
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400 md:text-[15px]">
+                Inspect shared memory, generate a better layout, and check
+                that your GPU kernel still produces the right results.
               </p>
             </div>
-            <div className="tg-hero-meta grid grid-cols-2 gap-2 md:min-w-[250px]">
-              <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3">
-                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-500">Memory model</span>
-                <span className="mt-1 block font-mono text-sm text-slate-200">32 banks</span>
+
+            <div className="grid grid-cols-2 gap-2 md:min-w-[245px]">
+              <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                <span className="block text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  Shared memory
+                </span>
+                <span className="mt-2 block text-xl font-semibold tracking-tight text-white">
+                  32 <span className="text-sm font-normal text-slate-400">banks</span>
+                </span>
               </div>
-              <div className="rounded-xl border border-white/[0.07] bg-black/20 p-3">
-                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-500">Workflow</span>
-                <span className="mt-1 block font-mono text-sm text-emerald-300">Audit → Prove</span>
+
+              <div className="rounded-xl border border-white/[0.08] bg-black/20 p-4">
+                <span className="block text-[10px] uppercase tracking-[0.12em] text-slate-500">
+                  Workflow
+                </span>
+                <span className="mt-2 block text-sm font-medium text-emerald-300">
+                  Inspect → Verify
+                </span>
               </div>
             </div>
           </div>
         </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <KernelEditor
             code={code}
@@ -152,16 +173,16 @@ export default function Home() {
             loadingSwizzle={loadingSwizzle}
           />
 
-          <div className="space-y-6 flex flex-col justify-between">
+          <div className="space-y-5 flex flex-col">
             <BankHeatmap
               simulation={auditData ? auditData.simulation : null}
-              title="Pre-Compilation Shared Memory Bank Conflicts (32 Banks)"
+              title="Original memory layout"
             />
 
             {swizzleData && (
               <BankHeatmap
                 simulation={swizzleData.optimized_simulation}
-                title="Post-Swizzle Memory Layout (Formally Conflict-Free)"
+                title="Optimized memory layout"
               />
             )}
           </div>
@@ -175,8 +196,17 @@ export default function Home() {
               proofDescription={swizzleData.patch.proof_description}
             />
           ) : (
-            <div className="bg-gpu-surface border border-gpu-border rounded-xl p-8 flex flex-col items-center justify-center text-slate-500 text-xs">
-              Click &quot;Synthesize Swizzle Patch&quot; to generate bitwise XOR layout and mathematical proof.
+            <div className="bg-gpu-surface border border-gpu-border rounded-xl p-8 min-h-[260px] flex flex-col items-center justify-center text-center">
+              <div className="h-11 w-11 rounded-xl border border-gpu-border bg-gpu-bg flex items-center justify-center mb-4">
+                <span className="font-mono text-lg text-emerald-300">{"{ }"}</span>
+              </div>
+              <h3 className="text-sm font-medium text-slate-200">
+                Your optimized kernel will appear here
+              </h3>
+              <p className="mt-2 max-w-xs text-xs leading-5 text-slate-500">
+                Generate a memory layout patch to inspect the updated code
+                and its proof.
+              </p>
             </div>
           )}
 

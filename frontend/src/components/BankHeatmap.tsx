@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -9,103 +10,207 @@ interface BankHeatmapProps {
   title: string;
 }
 
-export const BankHeatmap: React.FC<BankHeatmapProps> = ({ simulation, title }) => {
+export const BankHeatmap: React.FC<BankHeatmapProps> = ({
+  simulation,
+  title,
+}) => {
   const [hoveredBank, setHoveredBank] = useState<ColumnConflict | null>(null);
 
   if (!simulation) {
     return (
-      <div className="bg-gpu-surface border border-gpu-border rounded-xl p-5 flex flex-col items-center justify-center h-64 text-slate-500 text-sm">
-        <Info className="h-8 w-8 mb-2 opacity-50" />
-        <p>Run formal audit to generate 32-column shared memory collision heatmap.</p>
-      </div>
+      <section className="bg-gpu-surface border border-gpu-border rounded-xl overflow-hidden min-h-[250px] flex flex-col">
+        <div className="px-5 py-4 border-b border-gpu-border">
+          <h2 className="text-sm font-semibold text-white">{title}</h2>
+          <p className="text-[11px] text-slate-500 mt-1">
+            32 shared memory banks
+          </p>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-9 text-center">
+          <div className="h-10 w-10 rounded-xl bg-gpu-bg border border-gpu-border flex items-center justify-center mb-3">
+            <Info className="h-4 w-4 text-slate-500" />
+          </div>
+
+          <p className="text-sm font-medium text-slate-300">
+            No memory data yet
+          </p>
+          <p className="mt-1.5 max-w-xs text-xs leading-5 text-slate-500">
+            Inspect your kernel to see which banks are accessed at the
+            same time.
+          </p>
+        </div>
+      </section>
     );
   }
 
-  const { bank_hit_counts, max_conflict_way, efficiency_percentage, total_serialization_cycles } = simulation;
+  const {
+    max_conflict_way,
+    efficiency_percentage,
+    total_serialization_cycles,
+  } = simulation;
+
+  const conflictFree = max_conflict_way <= 1;
 
   return (
-    <div className="bg-gpu-surface border border-gpu-border rounded-xl p-5 flex flex-col justify-between">
-      {/* Header and Telemetry */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <h3 className="font-semibold text-sm text-white">{title}</h3>
-            {max_conflict_way > 1 ? (
-              <span className="flex items-center space-x-1 text-xs px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                {max_conflict_way}-Way Conflict Detected
-              </span>
-            ) : (
-              <span className="flex items-center space-x-1 text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Zero Bank Conflicts
-              </span>
-            )}
+    <section className="bg-gpu-surface border border-gpu-border rounded-xl overflow-hidden min-w-0">
+      <div className="px-5 py-4 border-b border-gpu-border">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-sm font-semibold text-white">{title}</h2>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Shared memory · Warp 0 · Threads 0–31
+            </p>
           </div>
-          <div className="text-right">
-            <span className="text-xs text-slate-400">SM Efficiency: </span>
-            <span className={`font-mono text-sm font-bold ${efficiency_percentage > 90 ? 'text-emerald-400' : 'text-amber-400'}`}>
+
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-medium ${
+              conflictFree
+                ? "bg-emerald-400/[0.07] text-emerald-300 border-emerald-400/20"
+                : "bg-rose-400/[0.07] text-rose-300 border-rose-400/20"
+            }`}
+          >
+            {conflictFree ? (
+              <CheckCircle className="h-3 w-3" />
+            ) : (
+              <AlertTriangle className="h-3 w-3" />
+            )}
+            {conflictFree ? "Conflict-free" : `${max_conflict_way}-way conflict`}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="rounded-lg bg-gpu-bg border border-gpu-border/80 p-3">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              SM efficiency
+            </p>
+            <p
+              className={`text-xl font-semibold tracking-tight mt-1 ${
+                efficiency_percentage > 90
+                  ? "text-emerald-300"
+                  : "text-amber-300"
+              }`}
+            >
               {efficiency_percentage}%
+            </p>
+          </div>
+
+          <div className="rounded-lg bg-gpu-bg border border-gpu-border/80 p-3">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+              Serialization
+            </p>
+            <p className="text-xl font-semibold tracking-tight mt-1 text-white">
+              {total_serialization_cycles}
+              <span className="text-xs font-normal text-slate-500 ml-1">
+                cycles
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <span className="text-[11px] font-medium text-slate-400">
+            Bank activity
+          </span>
+
+          <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-sm bg-emerald-400" />
+              Single access
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-sm bg-amber-400" />
+              2 accesses
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-sm bg-rose-400" />
+              3+ accesses
             </span>
           </div>
         </div>
 
-        <p className="text-xs text-slate-400 mb-4">
-          Visualizing 32 hardware memory banks for Warp 0 (Threads 0–31). Serialized conflict delay:{" "}
-          <span className="font-mono text-white font-semibold">{total_serialization_cycles} cycles</span>.
-        </p>
-
-        {/* Interactive 32-Bank SVG Heatmap */}
-        <div className="grid grid-cols-16 sm:grid-cols-32 gap-1 bg-gpu-bg p-3 rounded-lg border border-gpu-border">
+        <div className="grid grid-cols-8 sm:grid-cols-8 xl:grid-cols-8 2xl:grid-cols-8 gap-1.5 p-3 rounded-lg border border-gpu-border bg-gpu-bg">
           {simulation.column_conflicts.map((col) => {
             const hits = col.hit_count;
-            let bgClass = "bg-slate-800 border-slate-700 text-slate-400";
+
+            let cellClass =
+              "bg-slate-800/70 border-slate-700 text-slate-400";
+
             if (hits === 1) {
-              bgClass = "bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.2)]";
+              cellClass =
+                "bg-emerald-400/[0.12] border-emerald-400/35 text-emerald-200";
             } else if (hits === 2) {
-              bgClass = "bg-amber-500/30 border-amber-500 text-amber-200 animate-pulse";
+              cellClass =
+                "bg-amber-400/[0.14] border-amber-400/40 text-amber-200";
             } else if (hits >= 3) {
-              bgClass = "bg-rose-500/40 border-rose-500 text-rose-200 shadow-[0_0_12px_rgba(239,68,68,0.4)]";
+              cellClass =
+                "bg-rose-400/[0.16] border-rose-400/45 text-rose-200";
             }
+
+            const isSelected = hoveredBank?.bank_id === col.bank_id;
 
             return (
               <div
                 key={col.bank_id}
                 onMouseEnter={() => setHoveredBank(col)}
                 onMouseLeave={() => setHoveredBank(null)}
-                className={`relative flex flex-col items-center justify-center h-16 rounded border text-[10px] font-mono cursor-pointer transition-all hover:scale-105 ${bgClass}`}
+                className={`relative flex flex-col items-center justify-center min-h-[49px] sm:min-h-[52px] rounded-md border cursor-crosshair select-none ${cellClass} ${
+                  isSelected
+                    ? "ring-1 ring-white/70 brightness-125"
+                    : ""
+                }`}
               >
-                <span className="opacity-60 text-[8px]">B{col.bank_id}</span>
-                <span className="font-bold text-xs">{hits}x</span>
+                <span className="text-[9px] opacity-65 font-mono">
+                  B{col.bank_id}
+                </span>
+                <span className="text-sm font-semibold font-mono mt-0.5">
+                  {hits}
+                </span>
               </div>
             );
           })}
         </div>
-      </div>
 
-      {/* Hover Inspector Tooltip Bar */}
-      <div className="mt-4 pt-3 border-t border-gpu-border/60 min-h-[44px] flex items-center justify-between text-xs font-mono">
-        {hoveredBank ? (
-          <div className="text-slate-300">
-            <span className="text-gpu-accent font-bold">Bank {hoveredBank.bank_id}: </span>
-            {hoveredBank.hit_count === 0 ? (
-              <span className="text-slate-500">Idle (0 threads)</span>
-            ) : (
-              <span>
-                Accessed simultaneously by Warp Threads:{" "}
-                <span className="text-white">[{hoveredBank.colliding_threads.join(", ")}]</span>
-                {hoveredBank.hit_count > 1 && (
-                  <span className="text-rose-400 ml-2 font-bold">
-                    ({hoveredBank.hit_count}-way collision serialization!)
+        <div className="mt-3 rounded-lg bg-gpu-bg border border-gpu-border/80 px-3.5 py-3 min-h-[68px]">
+          {hoveredBank ? (
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-white">
+                  Bank {hoveredBank.bank_id}
+                </span>
+                <span className="text-[10px] font-mono text-slate-400">
+                  {hoveredBank.hit_count}{" "}
+                  {hoveredBank.hit_count === 1 ? "access" : "accesses"}
+                </span>
+              </div>
+
+              {hoveredBank.hit_count === 0 ? (
+                <p className="text-xs text-slate-500 mt-1.5">
+                  No threads accessed this bank.
+                </p>
+              ) : (
+                <p className="text-xs leading-5 text-slate-400 mt-1.5">
+                  Thread IDs:{" "}
+                  <span className="font-mono text-slate-200 break-words">
+                    [{hoveredBank.colliding_threads.join(", ")}]
                   </span>
-                )}
-              </span>
-            )}
-          </div>
-        ) : (
-          <span className="text-slate-500 italic">Hover over any of the 32 memory banks above to inspect warp thread IDs.</span>
-        )}
+                  {hoveredBank.hit_count > 1 && (
+                    <span className="text-rose-300 ml-1">
+                      · Possible conflict
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <Info className="h-3.5 w-3.5 shrink-0" />
+              Hover over a bank to inspect its thread IDs.
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
