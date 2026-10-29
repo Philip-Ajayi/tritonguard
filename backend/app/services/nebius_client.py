@@ -5,24 +5,27 @@ from app.core.config import settings
 
 class NebiusTokenFactoryClient:
     """
-    Connects to Nebius Token Factory serving NVIDIA Nemotron models:
-      - nebius/nvidia/nemotron-3-super-120b-a12b for structural AST extraction
-      - nebius/nvidia/Nemotron-3-Ultra-550b-a55b for formal symbolic polynomial verification
-    Includes deterministic fallback logic if API credentials are not provided.
+    Connects to NVIDIA NIM (build.nvidia.com) or Nebius Token Factory
+    serving NVIDIA Nemotron models.
     """
 
     def __init__(self):
-        self.api_key = settings.NEBIUS_API_KEY
-        self.base_url = settings.NEBIUS_API_BASE_URL.rstrip("/")
+        # Prefer NVIDIA NIM API if configured, otherwise fall back to Nebius
+        if settings.NVIDIA_API_KEY and len(settings.NVIDIA_API_KEY) > 10 and not settings.NVIDIA_API_KEY.startswith("your_"):
+            self.api_key = settings.NVIDIA_API_KEY
+            self.base_url = settings.NVIDIA_BASE_URL.rstrip("/")
+            self.model = settings.NVIDIA_MODEL
+        else:
+            self.api_key = settings.NEBIUS_API_KEY
+            self.base_url = settings.NEBIUS_API_BASE_URL.rstrip("/")
+            self.model = settings.NEBIUS_MODEL_PARSER
+
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
     async def analyze_kernel_invariants(self, source_code: str, target_arch: str) -> Dict[str, Any]:
-        """
-        Uses Nemotron 3 Super to parse symbolic memory access formulas.
-        """
         if not self.api_key or self.api_key.startswith("your_") or len(self.api_key) < 10:
             return self._fallback_local_analysis(source_code, target_arch)
 
@@ -34,8 +37,8 @@ Respond ONLY with valid JSON in this format:
 {{
   "kernel_name": "string",
   "indexing_formula": "string",
-  "bank_conflict_detected": true/false,
-  "conflict_degree": integer,
+  "bank_conflict_detected": true,
+  "conflict_degree": 4,
   "explanation": "string",
   "theoretical_speedup": "string"
 }}
@@ -44,9 +47,9 @@ Kernel Code:
 {source_code}
 """
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=20.0) as client:
                 payload = {
-                    "model": settings.NEBIUS_MODEL_PARSER,
+                    "model": self.model,
                     "messages": [
                         {"role": "system", "content": "You are a formal GPU memory invariant verifier. Always respond with raw valid JSON."},
                         {"role": "user", "content": prompt}
@@ -61,7 +64,6 @@ Kernel Code:
                 if resp.status_code == 200:
                     data = resp.json()
                     content = data["choices"][0]["message"]["content"]
-                    # Extract JSON if wrapped in markdown blocks
                     if "```json" in content:
                         content = content.split("```json")[1].split("```")[0].strip()
                     elif "```" in content:
@@ -73,9 +75,6 @@ Kernel Code:
             return self._fallback_local_analysis(source_code, target_arch)
 
     def _fallback_local_analysis(self, source_code: str, target_arch: str) -> Dict[str, Any]:
-        """
-        Deterministic formal invariant fallback when Nebius API credentials are unconfigured.
-        """
         has_swizzle = "_swizzle_2d" in source_code or "^" in source_code
         has_conflict = ("offs_k" in source_code or "stride" in source_code) and not has_swizzle
 

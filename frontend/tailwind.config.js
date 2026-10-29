@@ -8,6 +8,10 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      gridTemplateColumns: {
+        '16': 'repeat(16, minmax(0, 1fr))',
+        '32': 'repeat(32, minmax(0, 1fr))',
+      },
       colors: {
         gpu: {
           bg: "#0B0E14",
@@ -25,4 +29,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

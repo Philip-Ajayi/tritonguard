@@ -9,7 +9,12 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
 
-    # Nebius Token Factory
+    # NVIDIA NIM / Build API (https://build.nvidia.com)
+    NVIDIA_API_KEY: str = ""
+    NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    NVIDIA_MODEL: str = "nvidia/llama-3.1-nemotron-70b-instruct"
+
+    # Nebius Token Factory (Fallback / Alternative)
     NEBIUS_API_KEY: str = ""
     NEBIUS_API_BASE_URL: str = "https://api.tokenfactory.nebius.com/v1"
     NEBIUS_MODEL_PARSER: str = "nebius/nvidia/nemotron-3-super-120b-a12b"
@@ -25,7 +30,9 @@ class Settings(BaseSettings):
     ENABLE_CPU_SIMULATOR_FALLBACK: bool = True
 
     model_config = SettingsConfigDict(
-        case_sensitive=True,
+        env_file=(".env", "../.env"),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
         extra="ignore"
     )
 
