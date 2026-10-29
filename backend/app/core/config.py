@@ -9,18 +9,15 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
 
-    # NVIDIA NIM / Build API (https://build.nvidia.com)
     NVIDIA_API_KEY: str = ""
     NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
     NVIDIA_MODEL: str = "nvidia/llama-3.1-nemotron-70b-instruct"
 
-    # Nebius Token Factory (Fallback / Alternative)
     NEBIUS_API_KEY: str = ""
     NEBIUS_API_BASE_URL: str = "https://api.tokenfactory.nebius.com/v1"
     NEBIUS_MODEL_PARSER: str = "nebius/nvidia/nemotron-3-super-120b-a12b"
     NEBIUS_MODEL_REASONER: str = "nebius/nvidia/Nemotron-3-Ultra-550b-a55b"
 
-    # Sandboxing & CORS
     CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",

@@ -16,7 +16,7 @@ subprocess.check_call([
     "fastapi", "uvicorn", "pydantic", "triton", "torch", "numpy"
 ])
 
-# Download Cloudflare tunnel binary (requires no accounts, tokens, or signups)
+# Download Cloudflare tunnel binary
 if not os.path.exists("./cloudflared"):
     print("--> Downloading Cloudflare zero-auth tunnel binary...")
     subprocess.check_call([

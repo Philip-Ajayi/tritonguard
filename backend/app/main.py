@@ -19,10 +19,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Mount API Router FIRST
 app.include_router(router, prefix=settings.API_V1_STR)
 
-# 2. Mount Static UI at Root
 if os.path.exists("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
 else:

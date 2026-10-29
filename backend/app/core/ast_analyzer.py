@@ -23,7 +23,7 @@ class KernelASTVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
-        # Detect tile shape declarations e.g. BLOCK_M: tl.constexpr = 64 or BLOCK_M = 64
+        # Detect tile shape declarations
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             target_name = node.targets[0].id
             if isinstance(node.value, ast.Constant) and isinstance(node.value.value, int):
@@ -35,7 +35,7 @@ class KernelASTVisitor(ast.NodeVisitor):
                     if len(node.value.args) == 2 and isinstance(node.value.args[1], ast.Constant):
                         self.tile_shapes[target_name] = node.value.args[1].value
 
-        # Check for XOR swizzle patterns e.g. col ^ (row % 32)
+        # Check for XOR swizzle patterns
         if isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.BitXor):
             self.has_swizzle = True
 
@@ -69,7 +69,7 @@ class KernelASTVisitor(ast.NodeVisitor):
 
 class TritonASTAnalyzer:
     """
-    Main interface for formal inspection of GPU memory access invariants from source code.
+    Main interface for formal inspection of GPU memory access invariants
     """
     @staticmethod
     def inspect(source_code: str) -> Dict[str, Any]:

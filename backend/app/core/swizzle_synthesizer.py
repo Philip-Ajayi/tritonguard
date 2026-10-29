@@ -36,7 +36,6 @@ class SwizzleSynthesizer:
                 patched_code = swizzle_function_def + "\n" + patched_code
 
         # Replace non-swizzled pointer math:
-        # e.g.: offs_k = tl.arange(0, BLOCK_K)
         # with swizzled 2D index calculation
         target_pattern = r"(offs_k\s*=\s*tl\.arange\(0,\s*BLOCK_K\))"
         if re.search(target_pattern, patched_code):
